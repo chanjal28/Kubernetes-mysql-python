@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-app
+  namesapce: my-namespace 
+  labels:
+    app: flask-app
+spec:
+  template:
+    metadata:
+      name: flask-app
+      labels:
+        app: flask-app
+    spec:
+      containers:
+      - name: mysql-flask
+        image: akscontainer28.azurecr.io/mysql-python:v1
+        ports:
+        - containerPort: 8080
+          hostPort: 5000
+        env:
+        - name: FLASK
+          value: "production"
+        volumeMounts:
+        - name: data-volume
+          mountPath: /azure/mnt
+      volumes:
+      - name: data-volume
+        persistentVolumeClaim:
+          claimName: my-pvc
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flask-app
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-service
+  namespace: my-namespace
+spec:
+  selector:
+    app: flask-app
+
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 5000
+  type: ClusterIP
+
