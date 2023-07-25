@@ -2,7 +2,7 @@ import os
 from flask import Flask, request
 import pymysql
 import json
-
+import cryptography 
 
 app = Flask(__name__)
 #app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
@@ -10,12 +10,13 @@ app = Flask(__name__)
 
 def connection():
     db = pymysql.connect(
-        host="127.0.0.1",
+        host="10.0.222.105",
         user="root",
-        password="root@123",
+        password="password",
         db="my_db",
         port=3306
     )
+    print("db connected successfully")
     return db
 
 @app.route('/add_employee', methods=['POST'])

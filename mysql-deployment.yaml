@@ -1,0 +1,70 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-configmap
+  namespace: my-namespace
+data:
+  my.cnf: |
+    [mysqld]
+    innodb_buffer_pool_size=256M
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+  namespace: my-namespace
+  labels:
+    app: db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: db
+  template:
+    metadata:
+      labels:
+        app: db
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:8
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: test-secret
+              key: password
+              #        - name: MYSQL_USER
+              #          valueFrom:
+              #            secretKeyRef:
+              #              name: test-secret
+              #              key: username
+        ports:
+        - containerPort: 3306
+          name: db-container
+          #        volumeMounts:
+          #          - name: mysql-persistent-storage
+          #            mountPath: /var/lib/mysq
+          #      volumes:
+          #        - name: mysql-persistent-storage
+          #          persistentVolumeClaim:
+          #            claimName: my-pvc
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: my-namespace
+  name: mysql
+  labels:
+    app: db
+spec:
+  ports:
+  - port: 3306
+    protocol: TCP
+    name: mysql
+  selector:
+    app: db
+  type: ClusterIP
